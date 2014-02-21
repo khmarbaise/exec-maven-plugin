@@ -33,7 +33,7 @@ public class FileWrapper
 
     public boolean isExecutableOnWindows( File folder, String executable )
     {
-        // TODO: We should probably also test canExecute, but this is only
+        // we should probably also test canExecute, but this is only
         // available in SDK 6.
         // With the following we keep 1.5 compatibility for the moment.
         return new File( folder, executable ).isFile();

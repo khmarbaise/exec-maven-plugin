@@ -175,7 +175,7 @@ public class ExecMojo
     /**
      * Currently only used internally.
      */
-    @Component
+    @Component( role = WindowsExecutableExtension.class, hint="default" )
     private WindowsExecutableExtension wee;
 
     /**
