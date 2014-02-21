@@ -89,8 +89,9 @@ public class ExecMojoTest
     {
         super.setUp();
         mojo = new MockExecMojo();
+        
         // note: most of the tests below assume that the specified 
-        // executable path is not fully specicied. See ExecMojo#getExecutablePath
+        // executable path is not fully specified. See ExecMojo#getExecutablePath
         mojo.setExecutable( "mvn" );
         mojo.setArguments( Arrays.asList( new String[] { "--version" } ) );
         mojo.executeResult = 0;

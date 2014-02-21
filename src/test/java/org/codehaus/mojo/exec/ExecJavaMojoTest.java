@@ -203,6 +203,10 @@ public class ExecJavaMojoTest
         mojo = (ExecJavaMojo) lookupMojo( goal, pom );
 
         setUpProject( pom, mojo );
+//        WindowsExecutableExtension wee =
+//            (WindowsExecutableExtension) lookupMojo( goal, WindowsExecutableExtension.ROLE );
+        
+//        setVariableValueToObject( mojo, "wee", wee);
 
         MavenProject project = (MavenProject) getVariableValueFromObject( mojo, "project" );
 

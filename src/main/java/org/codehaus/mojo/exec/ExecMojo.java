@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarEntry;
@@ -122,7 +121,7 @@ public class ExecMojo
      * @since 1.0
      */
     @Parameter
-    private List<?> arguments;
+    private List<?> arguments; //TODO: Make something more meaningful than "?"
 
     /**
      * <p>
@@ -135,7 +134,9 @@ public class ExecMojo
      * @see #arguments
      */
     @Parameter( defaultValue = "true" )
-    private boolean failWithEmptyArgument;
+    //TODO: Remove this if commons-exec 1.3 has been released. 
+    // Details see https://issues.apache.org/jira/browse/EXEC-80.
+    private boolean failWithEmptyArgument; 
 
     /**
      * <p>
@@ -147,6 +148,8 @@ public class ExecMojo
      * @see #environmentVariables
      */
     @Parameter( defaultValue = "true" )
+    //TODO: Remove this if commons-exec 1.3 has been released. 
+    // Details see https://issues.apache.org/jira/browse/EXEC-80.
     private boolean failWithNullKeyOrValueInEnvironment;
 
     /**
@@ -168,6 +171,12 @@ public class ExecMojo
      */
     @Component
     private MavenSession session;
+
+    /**
+     * Currently only used internally.
+     */
+    @Component( role = WindowsExecutableExtension.class, hint="default" )
+    private WindowsExecutableExtension wee;
 
     /**
      * Exit codes to be resolved as successful execution for non-compliant applications (applications not returning 0
@@ -323,6 +332,7 @@ public class ExecMojo
 
                 // The following checks are only in relationship with MEXEC-108
                 // (https://issues.apache.org/jira/browse/EXEC-80)
+                // and can completely removed after commons-exec 1.3 has been released.
                 if ( item.getKey() == null )
                 {
                     if ( failWithNullKeyOrValueInEnvironment )
@@ -335,6 +345,8 @@ public class ExecMojo
                         getLog().warn( "The defined environment contains an entry with null key. This could cause failures." );
                     }
                 }
+                //TODO: Remove this if commons-exec 1.3 has been released. 
+                // Details see https://issues.apache.org/jira/browse/EXEC-80.
                 if ( item.getValue() == null )
                 {
                     if ( failWithNullKeyOrValueInEnvironment )
@@ -591,54 +603,34 @@ public class ExecMojo
     {
         File execFile = new File( executable );
         String exec = null;
+        //TODO: Does this sufficient enough for executable on Linux ? What about windows?
+        
+        //TODO: We should use FileChecker () to be consistent...
         if ( execFile.isFile() )
         {
             getLog().debug( "Toolchains are ignored, 'executable' parameter is set to " + executable );
             exec = execFile.getAbsolutePath();
         }
+        else
+        {
+            exec = getExecutableViaToolChain( enviro, dir, exec );
+        }
 
         if ( exec == null )
         {
-            Toolchain tc = getToolchain();
+            if ( OS.isFamilyWindows() )
+            {
+                //TODO: Improve DI usage 
+                SearchExecutableOnWindows seow =
+                    new SearchExecutableOnWindows( executable, new FileChecker( dir ), getLog(), wee );
+                exec = seow.getExecutable();
 
-            // if the file doesn't exist & toolchain is null, the exec is probably in the PATH...
-            // we should probably also test for isFile and canExecute, but the second one is only
-            // available in SDK 6.
-            if ( tc != null )
-            {
-                getLog().info( "Toolchain in exec-maven-plugin: " + tc );
-                exec = tc.findTool( executable );
-            }
-            else
-            {
-                if ( OS.isFamilyWindows() )
+                if ( exec == null )
                 {
-                    String ex = !executable.contains( "." ) ? executable + ".bat" : executable;
-                    File f = new File( dir, ex );
-                    if ( f.isFile() )
-                    {
-                        exec = ex;
-                    }
-
-                    if ( exec == null )
-                    {
-                        // now try to figure the path from PATH, PATHEXT env vars
-                        // if bat file, wrap in cmd /c
-                        String path = enviro.get( "PATH" );
-                        if ( path != null )
-                        {
-                            String[] elems = StringUtils.split( path, File.pathSeparator );
-                            for ( String elem : elems )
-                            {
-                                f = new File( new File( elem ), ex );
-                                if ( f.isFile() )
-                                {
-                                    exec = ex;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    //TODO: Improve DI usage 
+                    SearchPathOnWindows spow =
+                        new SearchPathOnWindows( enviro, executable, new FileWrapper(), getLog() );
+                    exec = spow.getExecutable();
                 }
             }
         }
@@ -649,7 +641,7 @@ public class ExecMojo
         }
 
         CommandLine toRet;
-        if ( OS.isFamilyWindows() && exec.toLowerCase( Locale.getDefault() ).endsWith( ".bat" ) )
+        if ( OS.isFamilyWindows() && wee.hasExecutableExtension( exec ) )
         {
             toRet = new CommandLine( "cmd" );
             toRet.addArgument( "/c" );
@@ -663,10 +655,21 @@ public class ExecMojo
         return toRet;
     }
 
-    // private String[] DEFAULT_PATH_EXT = new String[] {
-    // .COM; .EXE; .BAT; .CMD; .VBS; .VBE; .JS; .JSE; .WSF; .WSH
-    // ".COM", ".EXE", ".BAT", ".CMD"
-    // };
+    private String getExecutableViaToolChain( Map<String, String> enviro, File dir, String exec )
+    {
+        if ( exec == null )
+        {
+            Toolchain tc = getToolchain();
+
+            // if the file doesn't exist & toolchain is null, the exec is probably in the PATH...
+            if ( tc != null )
+            {
+                getLog().info( "Toolchain in exec-maven-plugin: " + tc );
+                exec = tc.findTool( executable );
+            }
+        }
+        return exec;
+    }
 
     //
     // methods used for tests purposes - allow mocking and simulate automatic setters

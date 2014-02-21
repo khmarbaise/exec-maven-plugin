@@ -69,7 +69,7 @@ public abstract class AbstractExecMojo
      * Defines the scope of the classpath passed to the plugin. Set to compile,test,runtime or system depending on your
      * needs. Since 1.1.2, the default value is 'runtime' instead of 'compile'.
      */
-    @Parameter( property = "exec.classpathScope", defaultValue = "runtime" )
+    @Parameter( property = "exec.classpathScope", defaultValue = Artifact.SCOPE_RUNTIME )
     protected String classpathScope;
 
     /**
@@ -91,23 +91,23 @@ public abstract class AbstractExecMojo
     protected void collectProjectArtifactsAndClasspath( List<Artifact> artifacts, List<File> theClasspathFiles )
     {
 
-        if ( "compile".equals( classpathScope ) )
+        if ( Artifact.SCOPE_COMPILE.equals( classpathScope ) )
         {
             artifacts.addAll( project.getCompileArtifacts() );
             theClasspathFiles.add( new File( project.getBuild().getOutputDirectory() ) );
         }
-        else if ( "test".equals( classpathScope ) )
+        else if ( Artifact.SCOPE_TEST.equals( classpathScope ) )
         {
             artifacts.addAll( project.getTestArtifacts() );
             theClasspathFiles.add( new File( project.getBuild().getTestOutputDirectory() ) );
             theClasspathFiles.add( new File( project.getBuild().getOutputDirectory() ) );
         }
-        else if ( "runtime".equals( classpathScope ) )
+        else if ( Artifact.SCOPE_RUNTIME.equals( classpathScope ) )
         {
             artifacts.addAll( project.getRuntimeArtifacts() );
             theClasspathFiles.add( new File( project.getBuild().getOutputDirectory() ) );
         }
-        else if ( "system".equals( classpathScope ) )
+        else if ( Artifact.SCOPE_SYSTEM.equals( classpathScope ) )
         {
             artifacts.addAll( project.getSystemArtifacts() );
         }
