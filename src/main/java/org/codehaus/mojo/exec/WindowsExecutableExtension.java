@@ -15,10 +15,23 @@ public interface WindowsExecutableExtension
      */
     String getExtension( String executable );
 
+    /**
+     * Will give back all windows executable extensions which are
+     * currently configured.
+     * @return List with the extensions. Never <code>null</code>.
+     */
     List<String> getExtensions();
 
+    /**
+     * @param executable
+     * @return
+     */
     boolean hasExtension( String executable );
 
+    /**
+     * @param exectuable
+     * @return
+     */
     boolean hasExecutableExtension( String exectuable );
 
 }

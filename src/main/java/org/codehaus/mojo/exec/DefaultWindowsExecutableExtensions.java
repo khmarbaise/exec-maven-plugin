@@ -7,7 +7,7 @@ import java.util.Locale;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
-@Component( role = WindowsExecutableExtension.class, hint = "default" )
+@Component( role = WindowsExecutableExtension.class )
 public class DefaultWindowsExecutableExtensions
     extends AbstractLogEnabled
     implements WindowsExecutableExtension
@@ -63,7 +63,7 @@ public class DefaultWindowsExecutableExtensions
      */
     public boolean hasExtension( String executable )
     {
-        //TODO: There might be better alternatives. What about commons-io ? 
+        //TODO: There might be better alternatives. What about commons-io ? Or plexus-utils ?  
         return executable.contains( "." );
     }
 
