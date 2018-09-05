@@ -217,7 +217,7 @@ public class ExecMojo
     {
         if ( isSkip() )
         {
-            getLog().info( "skipping execute as per configuraion" );
+            getLog().info( "skipping execute as per configuration" );
             return;
         }
 
